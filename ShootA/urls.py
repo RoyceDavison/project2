@@ -13,27 +13,17 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
+from django.conf.urls import url,include
 from django.contrib import admin
-
-urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-]
-
-#use include() to add URLS from the InfoTrack application
-from django.conf.urls import include
-
-urlpatterns += [
-    url(r'^InfoTrack/', include('InfoTrack.urls'))
-]
-
-#Add URL maps to redirect the base URL to our application
-from django.views.generic import RedirectView
-urlpatterns += [
-    url(r'^$', RedirectView.as_view(url='/InfoTrack/', permanent=True)),
-]
-
+from ShootA import views
 from django.conf import settings
 from django.conf.urls.static import static
+
+urlpatterns = [
+    url(r'^$',views.login_redirect, name ="login_redirect"),
+    url(r'^admin/', admin.site.urls),
+    url(r'^InfoTrack/', include('InfoTrack.urls', namespace = "InfoTrack")),
+    url(r'^friendship/', include('friendship.urls',namespace="friendship"))
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

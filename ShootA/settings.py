@@ -31,13 +31,15 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "friendship",
+    'InfoTrack',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'InfoTrack.apps.InfotrackConfig',
+    #'InfoTrack.apps.InfotrackConfig',
 ]
 
 MIDDLEWARE = [
@@ -117,5 +119,21 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
+LOGIN_REDIRECT_URL = "/InfoTrack/"
 
 STATIC_URL = '/static/'
+
+#EMAIL_HOST = "localhost"
+#EMAIL_PORT = 1025
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'ShootA/media')
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  #email后端
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'compsci326326@gmail.com'
+EMAIL_HOST_PASSWORD= 'qwe123456789'
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

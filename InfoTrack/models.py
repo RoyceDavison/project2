@@ -1,17 +1,21 @@
 from django.db import models
 from PIL import Image
 import uuid
-# Create your models here.
+from django.contrib.auth.models import User  #DJANGO DEFAULT USER
+from django.db.models.signals import post_save
 
-class User(models.Model):
-    username = models.CharField(max_length = 20, help_text = "Enter your name.")
+class UserProfile(models.Model):
+    user = models.OneToOneField(User)
     #comment = models.ManyToManyField("Comment",help_text = "Write your comment for the post.")
-    email = models.EmailField(max_length = 50,help_text = "Enter your e-mail:")
-    password = models.CharField(max_length = 20, help_text = "Create a password.")
-    description = models.TextField(help_text = "Please describe yourself so other can know you.", blank =True)
-    time = models.DateTimeField(auto_now_add = True)
+    location = models.CharField(max_length=100, default='')
+    website = models.URLField(default='')
+    description = models.CharField(max_length=100, default='', help_text = "Describe yourself.")
+    phone = models.IntegerField(default=0)
     userid = models.UUIDField(primary_key = True, default = uuid.uuid4, help_text="Unique ID for this particular user.")
-    
+    birth_date = models.DateField(null=True, blank=True)
+    image = models.ImageField(upload_to='profile_image', blank=True)
+    studentID = models.IntegerField(default = 0, help_text = "Umass studentID.")
+
     YEAR_IN_SCHOOL_CHOICES = (
         ('FR', 'Freshman'),
         ('SO', 'Sophomore'),
@@ -22,40 +26,24 @@ class User(models.Model):
     grade = models.CharField(max_length=2, choices=YEAR_IN_SCHOOL_CHOICES, default='FRESHMAN')
     major = models.CharField(max_length = 20, help_text="Please enter your major.",blank=False)
 
-    class Meta:
-        ordering = ["username"]
-
-    def get_absolute_url(self):
-        return reverse('user-detail', args=[str(self.id)])
-    
     def __str__(self):
-        return '%s %s %s' % (self.username,self.time, self.userid)
+        return self.user.username
 
-    
-# Required for unique comment instances
-class Comment(models.Model):
-    context = models.TextField(help_text ="Write your comment.",blank = True)
-    #picture = models.ImageField(upload_to = 'photo')
-    video = models.URLField(blank=True)
-    time = models.DateTimeField(auto_now_add = True)
-    #comment = models.ForeignKey('Post', null=True) 
-    class Meta:
-        ordering = ["time"]
+# if the current user is created the profile is automatically linked to it
+def create_profile(sender, **kwargs):
+    if kwargs['created']:
+        user_profile = UserProfile.objects.create(user=kwargs['instance'])
 
-    # Methods
-    def get_absolute_url(self):
-         return reverse('model-detail-view', args=[str(self.id)])
+post_save.connect(create_profile, sender=User)
     
-    def __str__(self):
-        return '%s, %s' % (self.context,self.time)
 
 class Post(models.Model):
-    title = models.CharField(max_length = 20, help_text ="Your post title.",blank = True)
+    title = models.CharField(max_length = 200, help_text ="Your post title.",blank = True)
     context = models.TextField(help_text ="What is in your mind?",blank = True)
     time = models.DateTimeField(auto_now_add = True)
-    #picture = models.ImageField(upload_to = 'photo')
+    image = models.ImageField(upload_to='profile_image', blank=True)
     video = models.URLField(blank=True)
-    #user = models.ForeignKey('User', null=True) 
+    user = models.ForeignKey(User, null=True) 
 
     TYPE_OF_POST = (
         ("---","---"),
@@ -69,9 +57,26 @@ class Post(models.Model):
 
     class Meta:
         ordering = ["time"]
-    # Methods
-    def get_absolute_url(self):
-        return reverse('model-detail-view', args=[str(self.id)])
-    
+
     def __str__(self):
         return '%s, %s, %s' % (self.title,self.context,self.time)
+
+
+# Required for unique comment instances
+class Comment(models.Model):
+    context = models.TextField(help_text ="Write your comment.",blank = True)
+    image = models.ImageField(upload_to='profile_image', blank=True)
+    video = models.URLField(blank=True)
+    time = models.DateTimeField(auto_now_add = True)
+    user = models.ForeignKey(User, null=True)
+    post = models.ForeignKey('Post', null=True)
+
+    class Meta:
+        ordering = ["time"]
+
+    def __str__(self):
+        return '%s, %s' % (self.context,self.time)
+
+
+class Friend(models.Model):
+    users = models.ManyToManyField(User)
